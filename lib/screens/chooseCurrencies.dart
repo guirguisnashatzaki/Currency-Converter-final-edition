@@ -154,7 +154,8 @@ class _ChooseCurState extends State<ChooseCur> {
                         children: [
                           fromText == "???"?
                           Image.asset(fromImage,width: 60,height: 60,):
-                          Image.network(fromImage,width: 60,height: 60,),
+                          CachedNetworkImage(
+                            imageUrl: fromImage,width: 60,height: 60,),
                           const SizedBox(width: 5,),
                           Text(fromText,style: const TextStyle(fontSize: 25,color: Colors.white),)
                         ],
@@ -168,7 +169,8 @@ class _ChooseCurState extends State<ChooseCur> {
                         children: [
                           toText == "???"?
                           Image.asset(toImage,width: 60,height: 60,):
-                          Image.network(toImage,width: 60,height: 60,),
+                          CachedNetworkImage(
+                            imageUrl: toImage,width: 60,height: 60,),
                           const SizedBox(width: 5,),
                           Text(toText,style: const TextStyle(fontSize: 25,color: Colors.white),)
                         ],

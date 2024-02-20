@@ -13,13 +13,18 @@ import 'package:flutter_rbna2/screens/home.dart';
 import 'package:flutter_rbna2/web_services/currency_web_service.dart';
 import 'constants.dart';
 import 'db_handler/db_handler.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
-  ]).then((value) => runApp(MyApp(db: DBHelper(),currencyWebService: CurrencyWebService())));
+  ]).then((value){
+    runApp(MyApp(db: DBHelper(),currencyWebService: CurrencyWebService()));
+    FlutterNativeSplash.remove();
+  });
 }
 
 class MyApp extends StatelessWidget {
