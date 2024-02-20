@@ -2,26 +2,23 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_offline/flutter_offline.dart';
-import 'package:flutter_rbna2/bussiness_logic/convert/convert_cubit.dart';
 import 'package:flutter_rbna2/bussiness_logic/currency/currency_cubit.dart';
-import 'package:flutter_rbna2/bussiness_logic/history/conversion_cubit.dart';
-import 'package:flutter_rbna2/constants.dart';
 import 'package:flutter_rbna2/db_handler/db_handler.dart';
 import 'package:flutter_rbna2/models/conversionHistory.dart';
 import 'package:flutter_rbna2/web_services/currency_web_service.dart';
 
 import '../models/supportedCurrencies.dart';
 
-class Home extends StatefulWidget {
+class ChooseCur extends StatefulWidget {
   DBHelper db;
   CurrencyWebService currencyWebService;
-  Home({Key? key,required this.currencyWebService,required this.db}) : super(key: key);
+  ChooseCur({Key? key,required this.currencyWebService,required this.db}) : super(key: key);
 
   @override
-  State<Home> createState() => _HomeState();
+  State<ChooseCur> createState() => _ChooseCurState();
 }
 
-class _HomeState extends State<Home> {
+class _ChooseCurState extends State<ChooseCur> {
 
   List<SupportedCurrency> toCurrency = [];
   List<SupportedCurrency> fromCurrency = [];
@@ -40,7 +37,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("Currency Convertor",
+        title: const Text("Choose two Currencies",
           style: TextStyle(
             fontSize: 25,
             color: Colors.white,
@@ -50,38 +47,6 @@ class _HomeState extends State<Home> {
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         backgroundColor: const Color.fromRGBO(7,36,249,1),
-      ),
-      drawer: Drawer(
-        child: Container(
-          padding: const EdgeInsets.only(left: 10,top: 20,bottom: 20),
-          color: Colors.white,
-          child: Column(
-            children: [
-              const SizedBox(height: 50,),
-              const Divider(),
-              InkWell(
-                onTap: (){
-                  Navigator.pushNamed(context, history);
-                },
-                child: Row(
-                  children: [
-                    const Icon(Icons.history),
-                    const SizedBox(width: 10,),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      child: const Text("Conversion History",
-                        style: TextStyle(
-                          fontSize: 25,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-            ],
-          ),
-        ),
       ),
       body: OfflineBuilder(
         connectivityBuilder: (BuildContext context,ConnectivityResult connectivity,Widget child){
@@ -108,76 +73,6 @@ class _HomeState extends State<Home> {
                 child: Stack(
                   children: [
                     Positioned(
-                      top: 20,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width/4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: TextFormField(
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Amount",
-                            hintStyle: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 20
-                            ),
-                            contentPadding: EdgeInsets.only(left: 15),
-                          ),
-                          style: const TextStyle(
-                              fontSize: 20
-                          ),
-                          controller: amountController,
-                        ),
-                      ),
-                    ),
-
-                    Positioned(
-                        top: 90,
-                        left: 0,
-                        right: 0,
-                        child: BlocBuilder<ConvertCubit,ConvertState>(
-                          builder: (BuildContext context, state) {
-                            if(state is ConvertLoaded){
-                              convertedAmount = (state).conversion;
-                              BlocProvider.of<ConversionCubit>(context).addConversion(convertedAmount!);
-                              return Container(
-                                width: MediaQuery.of(context).size.width,
-                                margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width/4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: TextFormField(
-                                  enabled: false,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: convertedAmount?.convertedAmount.toString(),
-                                    hintStyle: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 20
-                                    ),
-                                    contentPadding: const EdgeInsets.only(left: 15),
-                                  ),
-                                  style: const TextStyle(
-                                      fontSize: 20
-                                  ),
-                                ),
-                              );
-                            }else{
-                              return const SizedBox.shrink();
-                            }
-                          },
-                        )
-                    ),
-
-                    Positioned(
                       top: 240,
                       left: 0,
                       right: 0,
@@ -188,12 +83,11 @@ class _HomeState extends State<Home> {
                           style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.all(Colors.white),
                           ),
-                          child: const Text("Convert",style: TextStyle(color: Color.fromRGBO(7,36,249,1)),),
+                          child: const Text("Filter",style: TextStyle(color: Color.fromRGBO(7,36,249,1)),),
                           onPressed: (){
 
                             bool from = false;
                             bool to = false;
-                            bool amount = false;
 
                             if(fromText == "???"){
                               from = true;
@@ -203,23 +97,13 @@ class _HomeState extends State<Home> {
                               to = true;
                             }
 
-                            if(amountController.text.toString().isEmpty){
-                              amount = true;
-                            }else{
-                              if(amountController.text.toString().split(".").length > 2){
-                                amount = true;
-                              }
-                            }
-
                             String fromError = "Choose a currency to convert from";
                             String toError = "Choose a currency to convert to";
-                            String amountError = "Put a valid value";
 
-                            if(!from && !to && !amount){
-                              setState(() {
-                                isLoading = true;
-                              });
-                              BlocProvider.of<ConvertCubit>(context).convert(fromText, toText, double.parse(amountController.text.toString()), fromName, toName);
+                            if(!from && !to){
+
+                              Navigator.pop(context,"$fromText,$toText");
+
                             }else{
                               showDialog<String>(
                                 context: context,
@@ -229,7 +113,6 @@ class _HomeState extends State<Home> {
                                       width: MediaQuery.of(context).size.width/2,
                                       height: MediaQuery.of(context).size.height/2,
                                       decoration: BoxDecoration(
-
                                           borderRadius: BorderRadius.circular(20)
                                       ),
                                       child: Column(
@@ -251,15 +134,7 @@ class _HomeState extends State<Home> {
                                               ),
                                               child: Text(toError)
                                           ):const SizedBox.shrink(),
-                                          const SizedBox(height: 5,),
-                                          amount?Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(20),
-                                                  color: Colors.white
-                                              ),
-                                              child: Text(amountError)
-                                          ):const SizedBox.shrink(),
+                                          const SizedBox(height: 5,)
                                         ],
                                       ),
                                     ),
@@ -267,9 +142,6 @@ class _HomeState extends State<Home> {
                                 },
                               );
                             }
-                            setState(() {
-                              isLoading = false;
-                            });
                           },
                         ),
                       ),

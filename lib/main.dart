@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_rbna2/bussiness_logic/convert/convert_cubit.dart';
 import 'package:flutter_rbna2/bussiness_logic/currency/currency_cubit.dart';
+import 'package:flutter_rbna2/bussiness_logic/history/conversion_cubit.dart';
+import 'package:flutter_rbna2/repository/convertRepository.dart';
 import 'package:flutter_rbna2/repository/currencyRepository.dart';
+import 'package:flutter_rbna2/repository/historyRepository.dart';
+import 'package:flutter_rbna2/screens/chooseCurrencies.dart';
 import 'package:flutter_rbna2/screens/history_page.dart';
 import 'package:flutter_rbna2/screens/home.dart';
 import 'package:flutter_rbna2/web_services/currency_web_service.dart';
@@ -42,12 +47,47 @@ class MyApp extends StatelessWidget {
                         create: (context) =>
                             CurrencyCubit(CurrencyRepository(currencyWebService: currencyWebService,db: db)),
                       ),
+                      BlocProvider(
+                        create: (context) =>
+                            ConversionCubit(HistoryRepository(currencyWebService: currencyWebService,db: db)),
+                      ),
+                      BlocProvider(
+                        create: (context) =>
+                            ConvertCubit(ConvertRepository(currencyWebService: currencyWebService,db: db)),
+                      ),
                     ],
                     child: Home(currencyWebService: currencyWebService,db: db,))
             );
           case history:
             return MaterialPageRoute(
-                builder: (_) => HistoryPage(currencyWebService: currencyWebService,db: db,));
+                builder: (_) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(
+                        create: (context) =>
+                            ConversionCubit(HistoryRepository(currencyWebService: currencyWebService,db: db)),
+                      ),
+                    ],
+                    child: HistoryPage(currencyWebService: currencyWebService,db: db,))
+            );
+          case choose:
+            return MaterialPageRoute(
+                builder: (_) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(
+                        create: (context) =>
+                            CurrencyCubit(CurrencyRepository(currencyWebService: currencyWebService,db: db)),
+                      ),
+                      BlocProvider(
+                        create: (context) =>
+                            ConversionCubit(HistoryRepository(currencyWebService: currencyWebService,db: db)),
+                      ),
+                      BlocProvider(
+                        create: (context) =>
+                            ConvertCubit(ConvertRepository(currencyWebService: currencyWebService,db: db)),
+                      ),
+                    ],
+                    child: ChooseCur(currencyWebService: currencyWebService,db: db,))
+            );
         }
       },
     );
