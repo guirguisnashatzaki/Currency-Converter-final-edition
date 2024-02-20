@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_offline/flutter_offline.dart';
 import 'package:flutter_rbna2/bussiness_logic/history/conversion_cubit.dart';
 
 import '../constants.dart';
@@ -55,12 +56,6 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    BlocProvider.of<ConversionCubit>(context).getAllConversionsDB();
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -76,142 +71,178 @@ class _HistoryPageState extends State<HistoryPage> {
         elevation: 0,
         backgroundColor: const Color.fromRGBO(7,36,249,1),
       ),
-      body: BlocBuilder<ConversionCubit,ConversionState>(
-        builder: (BuildContext context, ConversionState state) {
-          if(state is ConversionLoaded){
-            data = (state).conversions;
-            showData(filter);
-            if(dataShown.isEmpty){
-              return const Center(
-                child: Text("There is nothing in history"),
-              );
-            }
-            return Container(
-              padding: const EdgeInsets.all(30),
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromRGBO(7,36,249,1),
-                    Colors.white,
-                  ],
-                  stops: [0.0, 1.0],
-                  begin: FractionalOffset.topCenter,
-                  end: FractionalOffset.center,
-                ),
-              ),
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      var res = await Navigator.pushNamed(context, choose);
-                      if(res != null && res.toString().isNotEmpty){
-                        setState(() {
-                          firstCurrency = res.toString().split(",")[0];
-                          secondCurrency = res.toString().split(",")[1];
-                          filter = true;
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height/20,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10)
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              const Text("Filter by : "),
-                              const SizedBox(height: 15,),
-                              Text("$firstCurrency,"),
-                              Text(secondCurrency)
-                            ],
-                          ),
-                          InkWell(onTap: (){
-                            setState(() {
-                              firstCurrency = "";
-                              secondCurrency = "";
-                              filter = false;
-                            });
-                          }, child: const Icon(Icons.clear),)
+      body: OfflineBuilder(
+        connectivityBuilder: (BuildContext context,ConnectivityResult connectivity,Widget child){
+          final bool connected = connectivity != ConnectivityResult.none;
+
+          if(connected){
+            BlocProvider.of<ConversionCubit>(context).getAllConversionsDB();
+            return BlocBuilder<ConversionCubit,ConversionState>(
+              builder: (BuildContext context, ConversionState state) {
+                if(state is ConversionLoaded){
+                  data = (state).conversions;
+                  showData(filter);
+                  if(dataShown.isEmpty){
+                    return const Center(
+                      child: Text("There is nothing in history"),
+                    );
+                  }
+                  return Container(
+                    padding: const EdgeInsets.all(30),
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color.fromRGBO(7,36,249,1),
+                          Colors.white,
                         ],
+                        stops: [0.0, 1.0],
+                        begin: FractionalOffset.topCenter,
+                        end: FractionalOffset.center,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10,),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    height: MediaQuery.of(context).size.height/1.5,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30)
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: List.generate(dataShown.length, (index){
-                          return Container(
-                            width: MediaQuery.of(context).size.width/1.2,
-                            height: MediaQuery.of(context).size.height/7,
-                            padding: const EdgeInsets.all(15),
-                            margin: const EdgeInsets.only(bottom: 20),
+                    child: Column(
+                      children: [
+                        InkWell(
+                          onTap: () async {
+                            var res = await Navigator.pushNamed(context, choose);
+                            if(res != null && res.toString().isNotEmpty){
+                              setState(() {
+                                firstCurrency = res.toString().split(",")[0];
+                                secondCurrency = res.toString().split(",")[1];
+                                filter = true;
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height/20,
                             decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(30),
-                                border: Border.all(
-                                    color: Colors.black,
-                                    width: 2
-                                )
+                                borderRadius: BorderRadius.circular(10)
                             ),
-                            child: Column(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(
                                   children: [
-                                    Text("From : ${dataShown[index].fromCode}"),
-                                    const SizedBox(width: 20,),
-                                    Text("To : ${dataShown[index].toCode}"),
+                                    const Text("Filter by : "),
+                                    const SizedBox(height: 15,),
+                                    Text("$firstCurrency,"),
+                                    Text(secondCurrency)
                                   ],
                                 ),
-                                const SizedBox(height: 10,),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text("Amount converted : ${dataShown[index].amount.toString()}",maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,),
-                                    ),
-                                    const SizedBox(width: 20,),
-                                    Expanded(
-                                      child: Text("to : ${dataShown[index].convertedAmount.toString()}",maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10,),
-                                Container(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Date : ${dataShown[index].date}")
-                                )
+                                InkWell(onTap: (){
+                                  setState(() {
+                                    firstCurrency = "";
+                                    secondCurrency = "";
+                                    filter = false;
+                                  });
+                                }, child: const Icon(Icons.clear),)
                               ],
                             ),
-                          );
-                        }),
-                      ),
+                          ),
+                        ),
+                        const SizedBox(height: 10,),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          height: MediaQuery.of(context).size.height/1.5,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30)
+                          ),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: List.generate(dataShown.length, (index){
+                                return Container(
+                                  width: MediaQuery.of(context).size.width/1.2,
+                                  height: MediaQuery.of(context).size.height/7,
+                                  padding: const EdgeInsets.all(15),
+                                  margin: const EdgeInsets.only(bottom: 20),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(30),
+                                      border: Border.all(
+                                          color: Colors.black,
+                                          width: 2
+                                      )
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text("From : ${dataShown[index].fromCode}"),
+                                          const SizedBox(width: 20,),
+                                          Text("To : ${dataShown[index].toCode}"),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10,),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text("Amount converted : ${dataShown[index].amount.toString()}",maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,),
+                                          ),
+                                          const SizedBox(width: 20,),
+                                          Expanded(
+                                            child: Text("to : ${dataShown[index].convertedAmount.toString()}",maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10,),
+                                      Container(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text("Date : ${dataShown[index].date}")
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
+                  );
+                }else{
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
             );
           }else{
-            return const Center(
-              child: CircularProgressIndicator(),
+            return  Center(
+              child: Container(
+                color: Colors.white,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    const Text(
+                      'Can\'t connect .. check internet',
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    Image.asset('assets/no_internet.png')
+                  ],
+                ),
+              ),
             );
           }
         },
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: Color.fromRGBO(7,36,249,1),
+          ),
+        ),
       )
     );
   }

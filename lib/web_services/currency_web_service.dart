@@ -8,7 +8,7 @@ class CurrencyWebService{
   late Dio dio;
 
   //for testing only
-  CurrencyWebService.test(this.dio);
+  CurrencyWebService.test(Dio dio);
 
   CurrencyWebService() {
     BaseOptions options = BaseOptions(
